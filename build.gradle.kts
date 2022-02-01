@@ -1,6 +1,7 @@
 val ktor_version: String by project
 val kotlin_version: String by project
 val logback_version: String by project
+val kmongo_version: String by project
 
 plugins {
     application
@@ -9,11 +10,18 @@ plugins {
 }
 
 group = "com.fadinglight"
-version = "0.0.1"
+version = "beta"
 application {
     mainClass.set("com.fadinglight.ApplicationKt")
 }
 
+tasks {
+    jar {
+        manifest {
+            attributes(mapOf("Main-Class" to "com.fadinglight.ApplicationKt"))
+        }
+    }
+}
 repositories {
     maven { url = uri("https://maven.aliyun.com/repository/public") }
     maven { url = uri("https://maven.aliyun.com/repository/google") }
@@ -29,8 +37,9 @@ dependencies {
     implementation("io.ktor:ktor-serialization:$ktor_version")
     implementation("io.ktor:ktor-server-content-negotiation:$ktor_version")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
-    // mongodb
-    implementation("org.litote.kmongo:kmongo-coroutine:4.4.0")
+    // kmongo
+    implementation("org.litote.kmongo:kmongo-coroutine-serialization:$kmongo_version")
+    implementation("org.litote.kmongo:kmongo-id-serialization:$kmongo_version")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test")

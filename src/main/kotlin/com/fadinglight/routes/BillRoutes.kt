@@ -1,37 +1,83 @@
 package com.fadinglight.routes
 
+import com.fadinglight.database.mongo
+import com.fadinglight.models.Bill
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.server.response.*
 import com.fadinglight.models.BillItem
-import com.fadinglight.models.bills
 import io.ktor.http.*
 import io.ktor.server.request.*
+import org.litote.kmongo.eq
 
 fun Route.billRoutes() {
     get("/") {
-        call.respondText("Hello World!", status = HttpStatusCode.OK)
+        call.respondText("Hello, this is the bill sys server!", status = HttpStatusCode.OK)
     }
-    post("/bill") {
+
+    post("/bill/{date}") {
+        val date = call.parameters["date"] ?: return@post call.respondText(
+            "Bad Request",
+            status = HttpStatusCode.BadRequest,
+        )
         val billItem = call.receive<BillItem>()
-        call.application.environment.log.info(billItem.toString())
-        bills.add(billItem)
+        val mongo = mongo<Bill>()
+        val bill = mongo.findOne(Bill::date eq date)
+        if (bill != null) {
+            bill.contents.add(billItem)
+            mongo.updateOneById(bill._id, bill)
+        } else {
+            val newBill = Bill(date = date, contents = mutableListOf(billItem))
+            mongo.insertOne(newBill)
+        }
 
         call.respond(HttpStatusCode.OK)
     }
-    get("/bill/{id}") {
-        val id = call.parameters["id"] ?: return@get call.respondText(
-            "Missing or malformed id",
-            status = HttpStatusCode.BadRequest
+
+    delete("/bill/{date}/{billItemId}") {
+        val date = call.parameters["date"] ?: return@delete call.respondText(
+            "Bad Request, not date",
+            status = HttpStatusCode.BadRequest,
         )
-        val billItem = bills.find { it.id == id } ?: return@get call.respondText(
-            "No customer with id $id",
-            status = HttpStatusCode.NotFound
+        val billItemId = call.parameters["billItemId"] ?: return@delete call.respondText(
+            "Bad Request, not id",
+            status = HttpStatusCode.BadRequest,
         )
-        call.respond(billItem)
+        val mongo = mongo<Bill>()
+        val bill = mongo.findOne(Bill::date eq date) ?: return@delete call.respondText(
+            "Not Found, bill not found",
+            status = HttpStatusCode.NotFound,
+        )
+        val billId = bill._id
+        val billItem = bill.contents.find { it._id.toString() == billItemId } ?: return@delete call.respondText(
+            "Not Found, billItem not found",
+            status = HttpStatusCode.NotFound,
+        )
+        billItem.removed = true
+        mongo.updateOneById(billId, bill)
+        call.respond(HttpStatusCode.OK)
     }
+
+    // 获取指定日期date的账单
+    get("/bill/{date}") {
+        val date = call.parameters["date"] ?: return@get call.respondText(
+            "Bad Request",
+            status = HttpStatusCode.BadRequest,
+        )
+        val bill = mongo<Bill>().findOne(Bill::date eq date) ?: return@get call.respondText(
+            "not found the bill",
+            status = HttpStatusCode.NotFound,
+        )
+        call.respond(bill)
+    }
+
+    // 获取全部日期的账单
     get("/bills") {
+        val bills = mongo<Bill>().find().toList().filter { bill ->
+            bill.contents.any { !it.removed }
+        }
         call.respond(bills)
+
     }
 }
 

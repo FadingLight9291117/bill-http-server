@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "com.fadinglight"
-version = "beta"
+version = "v1.0.0-beta"
 application {
     mainClass.set("com.fadinglight.ApplicationKt")
 }

@@ -1,6 +1,6 @@
 package com.fadinglight.routes
 
-import com.fadinglight.database.mongo
+import com.fadinglight.database.Mongo
 import com.fadinglight.models.Bill
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
@@ -10,7 +10,10 @@ import io.ktor.http.*
 import io.ktor.server.request.*
 import org.litote.kmongo.eq
 
+
 fun Route.billRoutes() {
+    val mongo = Mongo()
+
     get("/") {
         call.respondText("Hello, this is the bill sys server!", status = HttpStatusCode.OK)
     }

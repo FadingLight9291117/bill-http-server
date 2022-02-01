@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 val ktor_version: String by project
 val kotlin_version: String by project
 val logback_version: String by project
@@ -7,6 +9,7 @@ plugins {
     application
     kotlin("jvm") version "1.6.10"
     id("org.jetbrains.kotlin.plugin.serialization") version "1.6.10"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group = "com.fadinglight"
@@ -15,13 +18,13 @@ application {
     mainClass.set("com.fadinglight.ApplicationKt")
 }
 
-tasks {
-    jar {
-        manifest {
-            attributes(mapOf("Main-Class" to "com.fadinglight.ApplicationKt"))
-        }
+tasks.withType<ShadowJar>() {
+    manifest {
+        attributes["Main-Class"] = "com.fadinglight.ApplicationKt"
     }
 }
+
+
 repositories {
     maven { url = uri("https://maven.aliyun.com/repository/public") }
     maven { url = uri("https://maven.aliyun.com/repository/google") }

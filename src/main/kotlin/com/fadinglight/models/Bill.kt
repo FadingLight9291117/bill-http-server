@@ -6,7 +6,6 @@ import org.litote.kmongo.Id
 import org.litote.kmongo.newId
 
 
-
 @Serializable
 data class Bill(
     @Contextual val _id: Id<Bill> = newId(),
@@ -20,6 +19,7 @@ data class BillItem(
     val money: String,
     val labels: MutableList<String>,
     val options: String = "",
+    val time: String = "",
     val flag: String = "-",
     var removed: Boolean = false,
 )
